@@ -197,6 +197,9 @@ input[type=range]{width:100%;accent-color:var(--navy)}
 .cloud-chip .dot.busy{background:#3f6fc9}
 .cloud-chip .dot.err{background:var(--warn)}
 .manlink{color:var(--navy-ink);font-weight:700;white-space:nowrap}
+.bswitch{display:grid;grid-template-columns:1fr 1fr;margin-top:12px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.bswitch a{display:flex;align-items:center;justify-content:center;height:34px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.04em;text-decoration:none;color:var(--muted)}
+.bswitch a[aria-current="page"]{background:var(--bg);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.14)}
 .gate{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(32px + env(safe-area-inset-bottom,0px))}
 .gate-in{max-width:420px;margin:0 auto;display:grid;gap:14px}
 .gate-in .logo{height:30px;width:auto;justify-self:start}
@@ -303,6 +306,7 @@ function renderList(){
       <div class="cnt num">${n}<small>枚の記録</small></div></button>`}).join("");
   const hairItems=SALON?galItems("hair","top",true):[],allN=SALON?hairItems.length+galItems("face","front",true).length:0;
   $("#app").innerHTML=`
+  ${SALON&&CLOUD.on?`<nav class="bswitch" aria-label="アプリの切り替え"><a href="/minusten-record/" >マイナステン</a><a href="/choiku-record/" aria-current="page">超育</a></nav>`:""}
   <header class="brandbar"><div class="bl"><img class="logo" src="${LOGO}" alt="超育"><span class="sub">${SALON?"サロン記録":"マイ記録"}</span></div><button class="iconbtn" id="setBtn">${SALON&&FIREBASE_CONFIG?"設定・共有":"設定・バックアップ"}</button></header>
   ${CLOUD.on?`<div class="cloud-chip" id="cloudChip">${chipHTML()}</div>`:""}
   <figure class="hero"><img src="${BANNER}" alt="超育 ご自宅で最新のエイジングケアが可能に" width="1200" height="792"></figure>
