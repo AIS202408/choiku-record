@@ -197,11 +197,41 @@ input[type=range]{width:100%;accent-color:var(--navy)}
 .cloud-chip .dot.busy{background:#3f6fc9}
 .cloud-chip .dot.err{background:var(--warn)}
 .manlink{color:var(--navy-ink);font-weight:700;white-space:nowrap}
+.bswitch{display:grid;grid-template-columns:1fr 1fr;margin-top:12px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.bswitch a{display:flex;align-items:center;justify-content:center;height:34px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.04em;text-decoration:none;color:var(--muted)}
+.bswitch a[aria-current="page"]{background:var(--bg);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.vid-card{display:flex;align-items:center;gap:14px;width:100%;margin-top:12px;padding:12px 14px;border:1px solid var(--navy-ink);border-radius:6px;background:transparent;text-align:left}
+.vid-card .vid-play{flex:none;width:46px;height:46px;border-radius:50%;background:var(--take);color:#fff;display:grid;place-items:center;font-size:18px;padding-left:3px}
+.vid-card b{display:block;font-family:var(--f-display);font-size:17px}
+.vid-card span span{font-size:12px;color:var(--muted)}
+.vid-link{color:var(--navy-ink)!important;font-weight:700;text-decoration:none!important;font-size:13px;padding:0}
+.vid{position:fixed;inset:0;z-index:60;background:#0b0f18;color:#fff;display:grid;grid-template-rows:auto 1fr auto auto;gap:10px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:calc(10px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-bottom,0px))}
+.vid-top{display:flex;justify-content:space-between;align-items:center}
+.vid .iconbtn{color:#ddd;border-color:#444}
+.vid video{width:100%;height:100%;min-height:0;object-fit:contain;background:#000;border-radius:8px}
+.vid-chaps{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.vid-chaps .chip{flex:none;background:transparent;border-color:#556;color:#eee;font-size:13px;height:34px}
+.vid-err{margin:0;color:#f0a08c;font-size:13px}
+.gate-links{display:flex;gap:18px;flex-wrap:wrap}
+.gate-links .gate-link{background:none;border:0;padding:0;font:inherit;cursor:pointer}
+.gate{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(32px + env(safe-area-inset-bottom,0px))}
+.gate-in{max-width:420px;margin:0 auto;display:grid;gap:14px}
+.gate-in .logo{height:30px;width:auto;justify-self:start}
+.gate-hero{margin:0;border-radius:6px;overflow:hidden;background:linear-gradient(180deg,var(--ice-a),var(--ice-b))}
+.gate-hero img{display:block;width:100%;height:auto}
+.gate-title{font-size:24px;letter-spacing:.04em}
+.gate-wait{margin:24px 0 0;color:var(--muted)}
+.gate-err{color:var(--warn)!important}
+.gate-link{justify-self:start;color:var(--navy-ink);font-weight:700;text-decoration:none}
+body.gated{overflow:hidden}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gate-in .logo{filter:brightness(0) invert(.9)}}
+:root[data-theme="dark"] .gate-in .logo{filter:brightness(0) invert(.9)}
 </style>
 
 <div class="app" id="app"></div>
 <div class="sheet" id="sheet" hidden></div>
 <div class="toast" id="toast" hidden></div>
+<div class="gate" id="gate" hidden></div>
 
 <script>
 (function(){
@@ -242,7 +272,20 @@ function sampleCustomers(){
   const mk=(n,name,days)=>({id:"sample-"+n,name,type:"hair",sample:true,visits:[
     {id:"sample-"+n+"-0",date:daysAgo(days),ph:{top:`sample:s${n}-b`},memo:"超育スタート"},
     {id:"sample-"+n+"-1",date:today(),ph:{top:`sample:s${n}-a`},memo:"ホームケアで継続中"}]});
-  return [mk(1,"見本 60代男性",21),mk(2,"見本 40代男性",70)];
+  // real home-care cases supplied by ユーフォリオ: [weeks after start, {angle: photo}, memo]
+  const cs=(n,type,name,total,steps)=>({id:"sample-"+n,name,type,sample:true,visits:steps.map(([w,ph,memo],i)=>({id:"sample-"+n+"-"+i,date:daysAgo((total-w)*7),
+    ph:Object.fromEntries(Object.entries(ph).map(([a,k])=>[a,"sample:"+k])),memo:memo||(i?"ホームケアで継続中":"超育スタート")}))});
+  return [mk(1,"見本 60代男性 3週間",21),mk(2,"見本 40代男性 10週間",70),
+    cs(3,"hair","見本 40代男性 12週間",12,[[0,{top:"n02-0",front:"n03-0"}],[6,{top:"n02-1"}],[12,{top:"n02-2",front:"n03-1"},"つむじあたりの髪が増え、赤ちゃんの毛が生え始めた"]]),
+    cs(4,"hair","見本 70代男性 5週間",5,[[0,{top:"n04-0"}],[5,{top:"n04-1"},"立ち上がりが出て、地肌が透けなくなった"]]),
+    cs(5,"hair","見本 60代男性 16週間",16,[[0,{top:"n05-0"}],[6,{top:"n05-1"}],[10,{top:"n05-2"}],[16,{top:"n05-3"},"つむじと分け目の立ち上がりが出た"]]),
+    cs(6,"hair","見本 40代男性 後頭部",10,[[0,{back:"n06-0"}],[10,{back:"n06-1"}]]),
+    cs(7,"hair","見本 60代女性 8週間",8,[[0,{front:"n08-0"}],[8,{front:"n08-1"},"生え際の産毛がしっかり育った"]]),
+    cs(8,"face","見本 50代女性 ①",10,[[0,{left:"n09-0"}],[5,{left:"n09-1"}],[10,{left:"n09-2"},"目の下の腫れが引き、頬のたるみが引き締まった"]]),
+    cs(9,"face","見本 50代女性 ②",10,[[0,{left:"n10-0"}],[5,{left:"n10-1"}],[10,{left:"n10-2"},"しっとりして透明感が出て、毛穴が目立たなくなった"]]),
+    cs(10,"face","見本 40代女性 ①",10,[[0,{front:"n11-0",left:"n12-0"}],[10,{front:"n11-1",left:"n12-1"},"肌が白くなり、ほうれい線と首のシワが改善"]]),
+    cs(11,"face","見本 40代女性 ②",10,[[0,{left:"n13-0",right:"n14-0"}],[10,{left:"n13-1",right:"n14-1"},"肝斑が薄くなり、毛穴も目立たなくなった"]]),
+    cs(12,"face","見本 40代女性 ③",10,[[0,{front:"n15-0",left:"n16-0"}],[10,{front:"n15-1",left:"n16-1"},"肌のトーンが上がり、シミが薄くなった"]])];
 }
 function myTracks(){return [{id:"hair",type:"hair",name:"髪（育毛）",visits:[]},{id:"face",type:"face",name:"お顔（美肌）",visits:[]}]}
 function defaultState(){return SALON?{salon:"",customers:sampleCustomers()}:{salon:"",customers:myTracks()}}
@@ -288,17 +331,20 @@ function renderList(){
       <div><div class="nm">${esc(c.name)}${SALON?" 様":""} ${SALON?`<span class="tag ${c.type}">${T(c).label}</span>`:""} ${c.sample?'<span class="tag">見本</span>':""}</div>
       <div class="meta num">${meta}</div></div>
       <div class="cnt num">${n}<small>枚の記録</small></div></button>`}).join("");
-  const hairItems=SALON?galItems("hair","top",true):[],allN=SALON?hairItems.length+galItems("face","front",true).length:0;
+  const hairItems=SALON?galItems("hair","top",true):[],allN=SALON?new Set(Object.keys(TYPES).flatMap(t=>TYPES[t].angles.flatMap(([an])=>galItems(t,an,true).map(x=>x.c.id)))).size:0;
   $("#app").innerHTML=`
+  ${SALON&&CLOUD.on?`<nav class="bswitch" aria-label="アプリの切り替え"><a href="/minusten-record/" >マイナステン</a><a href="/choiku-record/" aria-current="page">超育</a></nav>`:""}
   <header class="brandbar"><div class="bl"><img class="logo" src="${LOGO}" alt="超育"><span class="sub">${SALON?"サロン記録":"マイ記録"}</span></div><button class="iconbtn" id="setBtn">${SALON&&FIREBASE_CONFIG?"設定・共有":"設定・バックアップ"}</button></header>
   ${CLOUD.on?`<div class="cloud-chip" id="cloudChip">${chipHTML()}</div>`:""}
   <figure class="hero"><img src="${BANNER}" alt="超育 ご自宅で最新のエイジングケアが可能に" width="1200" height="792"></figure>
+  ${SALON?`<button class="vid-card" data-video="${VT.login}"><span class="vid-play" aria-hidden="true">▶</span><span><b>使い方を動画で見る</b><span>撮る・比べる・送るを約1分で</span></span></button>`:""}
   ${backupNote()}
+  ${(()=>{if(!CLOUD.on||!LOCAL_S)return"";const n=LOCAL_S.customers.filter(c=>!c.sample&&c.visits.length).length;let done=false;try{done=localStorage.getItem("choiku-moved")==="1"}catch(e){}if(!n||done)return"";return `<button class="bk-note" id="mvNote"><b>以前の記録</b> このスマホに、ログイン前の記録が${n}名分あります。ここから共有に追加できます →</button>`})()}
   ${SALON&&allN?(()=>{const src=hairItems.length?hairItems:galItems("face","front",true),a=hairItems.length?"top":"front";const t=src.slice(0,3).map(x=>`<img src="${srcOf(angPh(x.B,a))}" alt="">`).join("");return `<button class="col-btn" id="colBtn"><span class="thumbs">${t}</span><span><b>コレクション</b><span>ビフォアアフター ${allN}件を一覧で見る</span></span><span class="go">›</span></button>`})():""}
   ${!SALON?`<div class="case"><div class="ttl">事例：60代男性・3週間</div>${pairHTML({A:{ph:{top:"sample:s1-b"}},B:{ph:{top:"sample:s1-a"}},la:"スタート時",lb:"3週間後"},"top",false)}<p class="note" style="margin:0">同じ角度で撮り続けると、自分の変化をこのように見比べられます。</p></div>`:""}
   <section class="section">
     <div class="sec-head"><div><div class="eyebrow">${SALON?"Choiku Salon Record":"My Choiku Record"}</div><h2 class="h-big">${SALON?"お客様の記録":"わたしの記録"}</h2></div>${SALON?`<span class="muted num">${S.customers.length}名</span>`:""}</div>
-    <p class="lead">${SALON?"超育をはじめた日（スタート時）と、その後の変化を同じ角度で残します。育毛は頭頂部・生え際・後頭部、美肌は正面・右側・左側。<span class=\"muted\">見本の2名は試し用です。</span>":"超育をはじめた日の写真を撮り、2週間ごとに同じ角度で撮りましょう。変化が目で見えると続けやすくなります。"} <a class="manlink" href="${MANUAL}" target="_blank" rel="noopener">使い方を見る ›</a></p>
+    <p class="lead">${SALON?"超育をはじめた日（スタート時）と、その後の変化を同じ角度で残します。育毛は頭頂部・生え際・後頭部、美肌は正面・右側・左側。<span class=\"muted\">見本のお客様（育毛7名・美肌5名）は、実際のホームケアの事例です。</span>":"超育をはじめた日の写真を撮り、2週間ごとに同じ角度で撮りましょう。変化が目で見えると続けやすくなります。"} <a class="manlink" href="${MANUAL}" target="_blank" rel="noopener">使い方を見る ›</a></p>
     ${SALON?`<div class="tabs" id="lf">${[["all","すべて"],["hair","育毛"],["face","美肌"]].map(([k,l])=>`<button class="tab" data-lf="${k}" aria-pressed="${k===listFilter}">${l}</button>`).join("")}</div>`:""}
     <div class="clist">${rows||'<p class="muted">この種類のお客様はまだいません。</p>'}</div>
     ${SALON?'<div id="addArea"><button class="btn ghost block" id="addBtn">＋ お客様を追加</button></div>':""}
@@ -318,6 +364,7 @@ function renderList(){
   $("#setBtn").onclick=openSettings;
   if($("#colBtn"))$("#colBtn").onclick=()=>{if(!hairItems.length){galSt.type="face";galSt.angle="front"}openGallery()};
   if($("#bkNote"))$("#bkNote").onclick=openSettings;
+  if($("#mvNote"))$("#mvNote").onclick=openSettings;
 }
 function openCustomer(id){view={name:"detail",cid:id,a:0,b:0,angle:null};const c=cust();view.b=Math.max(0,c.visits.length-1);render();scrollTo(0,0)}
 
@@ -433,7 +480,7 @@ function openCapture(editId,startAngle){
   openSheet(`<div class="app">
     <header class="top"><button class="iconbtn" id="cx">閉じる</button><div style="text-align:right"><div class="eyebrow">${esc(c.name)}${SALON?" 様":""}・${T(c).long}</div><h1>${me}${editing?"を編集":"の撮影"}</h1></div></header>
     <section class="section">
-      <div class="field"><span class="flabel">撮影する角度（✓は取り込み済み）</span><div class="tabs" id="tabs"></div></div>
+      <div class="field"><span class="flabel">撮影する角度（✓は取り込み済み）　${vidBtn(VT.before,"撮り方を動画で見る")}</span><div class="tabs" id="tabs"></div></div>
       <div id="panel" style="display:grid;gap:12px"></div>
       <input type="file" id="file" class="vh" accept="image/*" capture="${selfie?"user":"environment"}" tabindex="-1" aria-hidden="true">
       <input type="file" id="file2" class="vh" accept="image/*" tabindex="-1" aria-hidden="true">
@@ -544,7 +591,7 @@ async function openShare(){
     <section class="section"><div id="imgWrap"><p class="muted">画像をつくっています…</p></div>
       <label class="chk"><input type="checkbox" id="inImg" ${isAndroid?"checked":""}> メッセージを画像の中に入れる${isAndroid?"（Androidは画像と文章を一緒に送れないため、オンがおすすめ）":""}</label>
       <div id="shareArea" style="display:grid;gap:8px"></div>
-      <p class="note" id="shareNote">画像を長押しして保存し、LINEで送ってください。</p></section>
+      <p class="note" id="shareNote">画像を長押しして保存し、LINEで送ってください。</p>${vidBtn(VT.line,"送り方を動画で見る")}</section>
     <section class="section"><div class="field"><label for="msg">メッセージ</label><textarea id="msg" rows="6"></textarea></div>
       <button class="btn ghost block" id="cp">メッセージをコピー</button></section></div>`);
   $("#cx").onclick=closeSheet;
@@ -644,7 +691,7 @@ function ensureFirebase(){
     firebase.initializeApp(FIREBASE_CONFIG);
     CLOUD.auth=firebase.auth();CLOUD.db=firebase.firestore();
     try{await CLOUD.db.enablePersistence({synchronizeTabs:true})}catch(e){}
-    CLOUD.auth.onAuthStateChanged(u=>{if(u)enterCloud(u);else if(CLOUD.on)exitCloud()});
+    CLOUD.auth.onAuthStateChanged(u=>{if(u){hideGate();enterCloud(u)}else{if(CLOUD.on){location.reload();return}showGate("login")}});
   })();
   fbReady.catch(()=>{fbReady=null});
   return fbReady;
@@ -654,7 +701,7 @@ let rTimer=0;const schedRender=()=>{cancelAnimationFrame(rTimer);rTimer=requestA
 function sortCustomers(){S.customers.sort((a,b)=>((a.sample?1:0)-(b.sample?1:0))||((b.created||0)-(a.created||0)))}
 function setCloudState(t){CLOUD.state=t;const el=$("#cloudChip");if(el)el.innerHTML=chipHTML()}
 function chipHTML(){const ld=CLOUD.loaded,loading=!(ld.s&&ld.c&&ld.v&&ld.p);
-  return `<span class="dot ${loading||CLOUD.state==="saving"?"busy":CLOUD.state==="error"?"err":""}"></span>共有中：${esc(CLOUD.id)}<span class="cs">${loading?"読み込み中…":CLOUD.state==="saving"?"保存中…":CLOUD.state==="error"?"保存できませんでした":"最新です"}</span>`}
+  return `<span class="dot ${loading||CLOUD.state==="saving"?"busy":CLOUD.state==="error"?"err":""}"></span>共有中：${S.salon?esc(S.salon)+"（"+esc(CLOUD.id)+"）":esc(CLOUD.id)}<span class="cs">${loading?"読み込み中…":CLOUD.state==="saving"?"保存中…":CLOUD.state==="error"?"保存できませんでした":"最新です"}</span>`}
 function fillPhotos(v){v.ph=v.ph||{};ALL_ANG.forEach(a=>{const d=CLOUD.P[v.id+"_"+a];if(d)v.ph[a]=d})}
 function enterCloud(u){
   if(CLOUD.on&&CLOUD.uid===u.uid)return;
@@ -664,7 +711,11 @@ function enterCloud(u){
   view={name:"list"};closeSheet();render();
   const base=salonRef(),un=CLOUD.unsubs,err=e=>{setCloudState("error");console.warn(e)};
   base.set({loginId:CLOUD.id,choikuLastActive:Date.now()},{merge:true}).catch(()=>{});
-  un.push(base.onSnapshot(d=>{const x=d.data()||{};S.salon=x.salonName||"";CLOUD.synced.s=S.salon;CLOUD.loaded.s=1;schedRender()},err));
+  un.push(base.onSnapshot(d=>{const x=d.data()||{};S.salon=x.salonName||"";CLOUD.synced.s=S.salon;CLOUD.loaded.s=1;
+    const fromCache=!!(d.metadata&&d.metadata.fromCache);
+    if(S.salon){const g=$("#nameSetup");if(g){g.remove();document.body.classList.remove("gated")}}
+    else if(!fromCache&&!$("#nameSetup"))showNameSetup();
+    schedRender()},err));
   un.push(base.collection(COL.c).onSnapshot(qs=>{
     qs.docChanges().forEach(ch=>{const id=ch.doc.id,d=ch.doc.data()||{};
       if(ch.type==="removed"){S.customers=S.customers.filter(c=>c.id!==id);delete CLOUD.synced.c[id];return}
@@ -765,10 +816,73 @@ function bindCloudSection(){
   };
   if($("#upBtn"))$("#upBtn").onclick=()=>{const plan=planMerge(LOCAL_S);
     $("#upArea").innerHTML=`<div class="confirm" style="border-color:var(--line)"><div>新しいお客様 <b>${plan.newC}名</b>、追加される記録 <b>${plan.addV}回分</b>を共有に追加します。同じお名前・同じ種類（育毛／美肌）のお客様は1人にまとめます。</div><div class="row2"><button class="btn ghost sm" id="upN">やめる</button><button class="btn sm" id="upY">追加する</button></div></div>`;
-    $("#upN").onclick=openSettings;$("#upY").onclick=()=>{applyMerge(LOCAL_S);sortCustomers();save();closeSheet();render();toast(`${plan.addV}回分の記録を共有に追加しました`)}};
+    $("#upN").onclick=openSettings;$("#upY").onclick=()=>{try{localStorage.setItem("choiku-moved","1")}catch(e){}applyMerge(LOCAL_S);sortCustomers();save();closeSheet();render();toast(`${plan.addV}回分の記録を共有に追加しました`)}};
   if($("#loBtn"))$("#loBtn").onclick=()=>{$("#loArea").innerHTML=`<div class="confirm"><div>ログアウトすると、このスマホでは共有の写真が見られなくなります（共有の記録自体は消えません）。</div><div class="row2"><button class="btn ghost sm" id="loN">やめる</button><button class="btn danger sm" id="loY">ログアウト</button></div></div>`;
     $("#loN").onclick=openSettings;$("#loY").onclick=cloudLogout};
 }
+
+// ---------- first-login salon name registration (shared by every device on the same ID, and with マイナステン記録) ----------
+function showNameSetup(){
+  const g=document.createElement("div");g.id="nameSetup";g.className="gate";
+  g.innerHTML=`<form class="gate-in" id="nsForm">
+    <img class="logo" src="${LOGO}" alt="超育">
+    <div><div class="eyebrow">はじめに 1回だけ</div><h1 class="gate-title">サロン名を登録</h1></div>
+    <p class="note" style="margin:0;font-size:14px">お客様に送る画像に入るサロン名です。<b>同じサロンID（${esc(CLOUD.id)}）でログインするスタッフ全員</b>に共通で保存されるので、登録は最初の1回だけです。</p>
+    <div class="field"><label for="nsName">サロン名</label><input id="nsName" maxlength="40" placeholder="例：Hair Salon ○○" autocomplete="organization" required></div>
+    <button class="btn block" id="nsBtn" type="submit">登録してはじめる</button>
+    <p class="note">あとから「設定・共有」でいつでも変更できます。</p>
+  </form>`;
+  document.body.appendChild(g);document.body.classList.add("gated");
+  setTimeout(()=>{const i=$("#nsName");if(i)i.focus()},50);
+  $("#nsForm").onsubmit=e=>{e.preventDefault();const v=$("#nsName").value.trim();if(!v){$("#nsName").focus();return}
+    S.salon=v;save();g.remove();document.body.classList.remove("gated");render();toast("サロン名を登録しました")};
+}
+
+// ---------- how-to video ----------
+const VIDEO_URL=SALON?"https://ais202408.github.io/choiku-record/howto.mp4":"";
+const VT={top:0,home:3.1,login:44.7,before:54.3,compare:73.5,line:76.7,collection:79.9};
+function openVideo(at){
+  const ov=document.createElement("div");ov.className="vid";ov.setAttribute("role","dialog");ov.setAttribute("aria-label","使い方の動画");
+  ov.innerHTML=`<div class="vid-top"><b>使い方の動画</b><button class="iconbtn" id="vX">閉じる</button></div>
+    <video id="vV" controls playsinline preload="auto" src="${VIDEO_URL}#t=${at||0}"></video>
+    <div class="vid-chaps">${[["home","ホーム画面に追加"],["login","ログイン"],["before","写真を撮る"],["compare","比べる"],["line","LINEで送る"],["collection","コレクション"]].map(([k,l])=>`<button class="chip" data-vt="${k}">${l}</button>`).join("")}</div>
+    <p class="vid-err" id="vE" hidden>動画を読み込めませんでした。インターネットにつながっているか確認してください。</p>`;
+  document.body.appendChild(ov);const v=ov.querySelector("#vV");
+  const close=()=>{try{v.pause()}catch(e){}ov.remove();document.removeEventListener("keydown",key)};
+  const key=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",key);
+  ov.querySelector("#vX").onclick=close;
+  v.addEventListener("error",()=>{ov.querySelector("#vE").hidden=false});
+  v.addEventListener("loadedmetadata",()=>{if(at&&Math.abs(v.currentTime-at)>1)v.currentTime=at},{once:true});
+  ov.querySelectorAll("[data-vt]").forEach(b=>b.onclick=()=>{v.currentTime=VT[b.dataset.vt];v.play().catch(()=>{})});
+  v.play().catch(()=>{});
+}
+const vidBtn=(at,label,cls)=>SALON?`<button class="${cls||"linkbtn vid-link"}" data-video="${at||0}">▶ ${label}</button>`:"";
+document.addEventListener("click",e=>{const b=e.target.closest("[data-video]");if(b){e.preventDefault();openVideo(+b.dataset.video)}});
+
+// ---------- login gate (salon app: an account is required to use the app) ----------
+function showGate(mode,msg){
+  const g=$("#gate");g.hidden=false;document.body.classList.add("gated");
+  if(mode==="loading"){g.innerHTML=`<div class="gate-in"><img class="logo" src="${LOGO}" alt="超育"><p class="gate-wait">読み込み中…</p></div>`;return}
+  if(mode==="offline"){g.innerHTML=`<div class="gate-in"><img class="logo" src="${LOGO}" alt="超育"><p class="gate-wait">読み込めませんでした。インターネットにつながっているか確認して、もう一度開いてください。</p><button class="btn block" id="gRetry">もう一度読み込む</button></div>`;$("#gRetry").onclick=()=>location.reload();return}
+  g.innerHTML=`<form class="gate-in" id="gForm" autocomplete="on">
+    <img class="logo" src="${LOGO}" alt="超育">
+    <figure class="gate-hero"><img src="${BANNER}" alt="超育 ご自宅で最新のエイジングケアが可能に"></figure>
+    <div><div class="eyebrow">Choiku Salon Record</div><h1 class="gate-title">サロン記録にログイン</h1></div>
+    <div class="field"><label for="gId">サロンID</label><input id="gId" name="username" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="例：attina" required></div>
+    <div class="field"><label for="gPw">パスワード</label><input id="gPw" name="password" type="password" autocomplete="current-password" required></div>
+    <button class="btn block" id="gBtn" type="submit">ログイン</button>
+    <p class="note gate-err" id="gMsg" ${msg?"":"hidden"}>${esc(msg||"")}</p>
+    <p class="note">マイナステン記録と同じサロンIDとパスワードで入れます。一度ログインすると、次からは自動でログインします。</p>
+    <div class="gate-links"><button class="gate-link" type="button" data-video="0">▶ 動画で見る</button><a class="gate-link" href="${MANUAL}" target="_blank" rel="noopener">使い方を見る ›</a></div>
+  </form>`;
+  $("#gForm").onsubmit=async e=>{e.preventDefault();const id=$("#gId").value.trim(),pw=$("#gPw").value,b=$("#gBtn"),m=$("#gMsg");
+    if(!id||!pw)return;b.disabled=true;b.textContent="ログインしています…";m.hidden=true;
+    try{await cloudLogin(id,pw)}
+    catch(err){const c=err&&err.code||"";m.hidden=false;
+      m.textContent=/network/.test(c)?"インターネットにつながっているか確認してください。":/too-many/.test(c)?"何度も間違えたため、しばらくログインできません。少し時間をおいてください。":"サロンIDかパスワードが違います。";
+      b.disabled=false;b.textContent="ログイン"}};
+}
+function hideGate(){const g=$("#gate");g.hidden=true;g.innerHTML="";document.body.classList.remove("gated")}
 
 // ---------- merge another staff member's backup ----------
 const normName=n=>String(n||"").replace(/[\s　]+/g,"").replace(/様$/,"");
@@ -794,13 +908,14 @@ function readJSONFile(f,cb,errEl){const fr=new FileReader();fr.onload=()=>{let s
 const APP_ID=SALON?"choiku-salon":"choiku-my";
 function openSettings(){
   openSheet(`<div class="app"><header class="top"><button class="iconbtn" id="cx">閉じる</button><h1>設定</h1></header>
-    <a class="btn ghost block" style="margin-top:14px;text-decoration:none" href="${MANUAL}" target="_blank" rel="noopener">使い方を見る（画面の写真つき）</a>
+    ${SALON?`<div class="row2" style="margin-top:14px"><button class="btn block" data-video="0">▶ 動画で見る</button><a class="btn ghost block" style="text-decoration:none" href="${MANUAL}" target="_blank" rel="noopener">写真つきの説明</a></div>`:`<a class="btn ghost block" style="margin-top:14px;text-decoration:none" href="${MANUAL}" target="_blank" rel="noopener">使い方を見る（画面の写真つき）</a>`}
     <section class="section">
-      <div class="field"><label for="sn">${SALON?"サロン名（送る画像に入ります）":"通っているサロン名（送るメッセージに入ります）"}</label><input id="sn" value="${esc(S.salon)}" placeholder="例：Hair Salon ○○"></div>
-      <button class="btn block" id="ss">保存</button>
+      <div class="field"><label for="sn">${SALON?"サロン名":"通っているサロン名（送るメッセージに入ります）"}</label><input id="sn" value="${esc(S.salon)}" placeholder="例：Hair Salon ○○" maxlength="40"></div>
+      ${SALON?`<p class="note" style="margin:0">${CLOUD.on?"同じサロンIDのスタッフ全員で共通です。マイナステン記録とも共通で、変更すると全員のアプリと送る画像に反映されます。":"送る画像に入ります。"}</p>`:""}
+      <button class="btn block" id="ss">${SALON?"サロン名を変更する":"保存"}</button>
     </section>
     ${SALON?cloudSectionHTML():""}
-    <section class="section" id="bkSec"><h2 style="font-size:16px">バックアップ</h2>
+    ${CLOUD.on?"":`<section class="section" id="bkSec"><h2 style="font-size:16px">バックアップ</h2>
       <p class="note" style="margin:0">${CLOUD.on?"共有中の記録はクラウドに保存されています。念のための控えとして、ファイルにも保存できます。":"写真と記録はこのスマホの中だけに保存されています。機種変更やデータの削除に備えて、月に1回ほどバックアップを保存してください。"}</p>
       <p class="num" style="margin:0;font-size:13px">最後のバックアップ：<b>${S.lastBackup?S.lastBackup.replace(/-0?/g,"/"):"まだ保存していません"}</b></p>
       <button class="btn block" id="bkSave">バックアップを保存</button>
@@ -808,8 +923,8 @@ function openSettings(){
       <input type="file" id="bkFile" accept=".json,application/json" hidden>`}
       <div id="bkMsg"></div>
       <p class="note" style="margin:0">iPhoneは共有画面で「"ファイル"に保存」を選びます。Androidは「ダウンロード」フォルダに保存されます。${CLOUD.on?"":"新しいスマホでは、このアプリを開いて「バックアップから戻す」で保存したファイルを選びます。「バックアップから戻す」は今の記録と置き換わります。"}</p>
-    </section>
-    ${SALON?`<section class="section"><h2 style="font-size:16px">スタッフの記録をまとめる</h2>
+    </section>`}
+    ${SALON&&!CLOUD.on?`<section class="section"><h2 style="font-size:16px">スタッフの記録をまとめる</h2>
       <p class="note" style="margin:0">他のスタッフが保存したバックアップファイルを選ぶと、<b>今の記録に追加</b>します。今ある写真や記録は消えません。${FIREBASE_CONFIG?"サロンIDで共有している場合は、この操作はいりません。":""}</p>
       <ol class="steps">
         <li>各スタッフが「バックアップを保存」を押し、共有画面で<b>LINE</b>を選んで、お店のグループやまとめ役のスタッフに送る</li>
@@ -826,8 +941,8 @@ function openSettings(){
       <div id="rs"><button class="linkbtn warn" id="rsb">${SALON?"すべて消して見本に戻す":"すべての記録を消す"}</button></div></section>`}</div>`);
   $("#cx").onclick=closeSheet;
   if(SALON)bindCloudSection();
-  $("#ss").onclick=()=>{S.salon=$("#sn").value.trim();save();closeSheet();render();toast("保存しました")};
-  $("#bkSave").onclick=async()=>{const b=$("#bkSave");b.disabled=true;await saveBackup();b.disabled=false;if(!$("#sheet").hidden&&$("#bkSave"))openSettings()};
+  $("#ss").onclick=()=>{const v=$("#sn").value.trim();if(SALON&&!v){$("#sn").focus();toast("サロン名を入れてください");return}S.salon=v;save();closeSheet();render();toast(SALON?"サロン名を変更しました":"保存しました")};
+  if($("#bkSave"))$("#bkSave").onclick=async()=>{const b=$("#bkSave");b.disabled=true;await saveBackup();b.disabled=false;if(!$("#sheet").hidden&&$("#bkSave"))openSettings()};
   if($("#bkFile"))$("#bkFile").onchange=e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
     readJSONFile(f,(st,at)=>{
       $("#bkMsg").innerHTML=`<div class="confirm"><div>${SALON?st.customers.filter(c=>!c.sample).length+"名分の":""}記録${at?"（"+at+" 保存）":""}を読み込みます。今このスマホにある記録は置き換わります。</div><div class="row2"><button class="btn ghost sm" id="bkN">やめる</button><button class="btn danger sm" id="bkY">読み込む</button></div></div>`;
@@ -913,7 +1028,11 @@ if(IN_LINE&&!/openExternalBrowser=1/.test(location.search)){location.replace(loc
 function inAppBanner(){if(!IN_APP||$("#iab"))return;const isA=/Android/i.test(UA);
   document.body.insertAdjacentHTML("afterbegin",`<div id="iab" class="iab"><b>${isA?"Chrome":"Safari"}で開いてください</b>アプリ内の画面では、撮影やLINEへの送信がうまく動きません。右上（または右下）のメニューから「${isA?"他のアプリで開く":"Safariで開く"}」「ブラウザで開く」を選んでください。</div>`)}
 inAppBanner();
-(async()=>{S=migrate(await load()||defaultState());LOCAL_S=S;render();if(FIREBASE_CONFIG&&cloudFlag())ensureFirebase().catch(()=>{})})();
+(async()=>{
+  if(FIREBASE_CONFIG)showGate("loading");
+  S=migrate(await load()||defaultState());LOCAL_S=S;render();
+  if(FIREBASE_CONFIG)ensureFirebase().catch(()=>showGate("offline"));
+})();
 })();
 </script>
 
